@@ -12,6 +12,7 @@ namespace SentinelLdkActivationToolCore
 {
     public class HttpConnector
     {
+        private HttpClientHandler handler;  
         public HttpClient httpClient;
         public HttpResponseMessage httpClientResponse;
         public string httpClientResponseStr;
@@ -27,6 +28,9 @@ namespace SentinelLdkActivationToolCore
 
         public HttpConnector GetRequest(string myAction, HttpMethod method = null, string myPlaceholder = null, KeyValuePair<string, string> rData = new KeyValuePair<string, string>(), HttpConnector client = null)
         {
+            handler = new HttpClientHandler();
+            handler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+
             string fullRequestUrl = SentinelMethods.UrlBuilder(SentinelSettings.actionsList[myAction], myPlaceholder);
             if (Startup.myAppSettings.LogIsEnabled) Log.Write(@"Get Url for request: " + fullRequestUrl);
 
@@ -43,7 +47,8 @@ namespace SentinelLdkActivationToolCore
                 case "login":
                     try
                     {
-                        client.httpClient = new HttpClient();
+                        if (SentinelSettings.ignoreSslCertStatus) client.httpClient = new HttpClient(handler: handler);
+                        else client.httpClient = new HttpClient();
 
                         var content = new StringContent(rData.Value, Encoding.UTF8, "application/xml");
                         client.httpClientResponse = client.httpClient.PostAsync(fullRequestUrl, content).Result;
@@ -64,7 +69,8 @@ namespace SentinelLdkActivationToolCore
                 case "loginpk":
                     try
                     {
-                        client.httpClient = new HttpClient();
+                        if (SentinelSettings.ignoreSslCertStatus) client.httpClient = new HttpClient(handler: handler);
+                        else client.httpClient = new HttpClient();
 
                         var content = new FormUrlEncodedContent(new[] { rData });
                         client.httpClientResponse = client.httpClient.PostAsync(fullRequestUrl, content).Result;
@@ -178,7 +184,8 @@ namespace SentinelLdkActivationToolCore
                 case "fpu":
                     try
                     {
-                        client.httpClient = new HttpClient();
+                        if (SentinelSettings.ignoreSslCertStatus) client.httpClient = new HttpClient(handler: handler);
+                        else client.httpClient = new HttpClient();
 
                         var content = new StringContent(rData.Value, Encoding.UTF8, "application/xml");
                         client.httpClientResponse = client.httpClient.PostAsync(fullRequestUrl, content).Result;

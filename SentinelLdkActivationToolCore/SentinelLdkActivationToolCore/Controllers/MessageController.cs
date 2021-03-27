@@ -8,7 +8,7 @@ using MyLogClass;
 namespace SentinelLdkActivationToolCore.Controllers
 {
     [ApiController]
-    [Route(AppSettings.HookPart)]
+    [Route("api/message/update")]
     public class MessageController : Controller
     {
         // GET api/values

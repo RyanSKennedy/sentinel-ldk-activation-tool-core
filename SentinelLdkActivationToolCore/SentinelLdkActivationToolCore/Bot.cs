@@ -28,8 +28,8 @@ namespace SentinelLdkActivationToolCore.Models
             commandsList.Add(new HelloCommand());
             commandsList.Add(new GetPkInfoCommand());
             commandsList.Add(new GetActivationByPkCommand());
-            commandsList.Add(new DebugCommand());
             commandsList.Add(new GetLicenseByAidCommand());
+            commandsList.Add(new DebugCommand());
             //TODO: Add more commands
 
             if (Startup.myAppSettings.LogIsEnabled) Log.Write(@"Create new Bot Client with Key: " + AppSettings.Key);

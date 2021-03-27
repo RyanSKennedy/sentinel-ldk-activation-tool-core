@@ -55,11 +55,11 @@ namespace SentinelLdkActivationToolCore.Models.Commands
             myMessage += "Url for Login by PK: " + SentinelMethods.UrlBuilder(SentinelSettings.actionsList["loginpk"]) + "\n";
             myMessage += "//-------\n";
             messageForLogs += "Url for Login by PK: " + SentinelMethods.UrlBuilder(SentinelSettings.actionsList["loginpk"]) + " | ";
-            myMessage += "Url for Get Info by PK: " + SentinelMethods.UrlBuilder(SentinelSettings.actionsList["getinfo"], "0071eb86-911c-40aa-a07b-552d23ce37a1") + "\n";
-            messageForLogs += "Url for Get Info by PK: " + SentinelMethods.UrlBuilder(SentinelSettings.actionsList["getinfo"], "0071eb86-911c-40aa-a07b-552d23ce37a1");
+            myMessage += "Url for Get Info by PK: " + SentinelMethods.UrlBuilder(SentinelSettings.actionsList["getinfo"], SentinelSettings.testProductKey) + "\n";
+            messageForLogs += "Url for Get Info by PK: " + SentinelMethods.UrlBuilder(SentinelSettings.actionsList["getinfo"], SentinelSettings.testProductKey);
             myMessage += "//-------\n";
             var myAuthData = SentinelSettings.authXmlString;
-            myAuthData = myAuthData.Replace("{PLACEHOLDER_LOGIN}", "ryansk").Replace("{PLACEHOLDER_PASSWORD}", "Legend157");
+            myAuthData = myAuthData.Replace("{PLACEHOLDER_LOGIN}", SentinelSettings.vendorLogin).Replace("{PLACEHOLDER_PASSWORD}", SentinelSettings.vendorPassword);
             myHttpConnector = myHttpConnector.GetRequest("login", HttpMethod.Post, null, new KeyValuePair<string, string>("authenticationDetail", myAuthData)); // TODO vendor login
             XDocument response = XDocument.Parse(myHttpConnector.httpClientResponseStr);
             myMessage += "Test Login by Vendor - auth response: \n" + response.ToString() + "\n";
