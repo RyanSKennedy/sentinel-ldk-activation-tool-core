@@ -37,7 +37,7 @@ namespace SentinelLdkActivationToolCore.Models
             { "getinfo", @"ws/productKey/{PLACEHOLDER}.ws" },                       // done
             { "getact", @"ws/productKey/{PLACEHOLDER}/activation.ws" },             // done
             { "dc2v", @"ws/c2v/decodeC2V.ws" },                                     // not yet done
-            { "fpu", @"ws/activation/target.ws" },                                  // not yet done
+            { "getfpu", @"ws/activation/target.ws" },                               // done
             { "ukey", @"ws/target.ws" },                                            // not yet done
             { "getlic", @"ws/activation/{PLACEHOLDER}.ws" }                         // done
         };

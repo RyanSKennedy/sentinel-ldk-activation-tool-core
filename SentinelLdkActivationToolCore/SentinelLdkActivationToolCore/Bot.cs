@@ -29,6 +29,8 @@ namespace SentinelLdkActivationToolCore.Models
             commandsList.Add(new GetPkInfoCommand());
             commandsList.Add(new GetActivationByPkCommand());
             commandsList.Add(new GetLicenseByAidCommand());
+            commandsList.Add(new GetFetchPendingUpdateCommand());
+            commandsList.Add(new GetSettingsCommand());
             commandsList.Add(new DebugCommand());
             //TODO: Add more commands
 

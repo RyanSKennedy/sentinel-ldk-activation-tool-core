@@ -181,7 +181,7 @@ namespace SentinelLdkActivationToolCore
                     }
                     break;
 
-                case "fpu":
+                case "getfpu":
                     try
                     {
                         if (SentinelSettings.ignoreSslCertStatus) client.httpClient = new HttpClient(handler: handler);

@@ -72,7 +72,7 @@ namespace SentinelLdkActivationToolCore
                     fileName = (String.IsNullOrEmpty(key) ? "" : key + "-") + "pkinfo-" + currentTime + ".xml";
                     break;
 
-                case "fpu":
+                case "getfpu":
                     if (incomingFile) fileName = (String.IsNullOrEmpty(key) ? "" : key + "-") + "currentstate-" + currentTime + ".c2v";
                     else fileName = (String.IsNullOrEmpty(key) ? "" : key + "-") + "pendingupdates-" + currentTime + ".v2cp";
                     break;

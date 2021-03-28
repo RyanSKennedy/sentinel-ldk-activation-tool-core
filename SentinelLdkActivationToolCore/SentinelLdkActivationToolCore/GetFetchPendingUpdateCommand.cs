@@ -13,10 +13,10 @@ using System.Linq;
 
 namespace SentinelLdkActivationToolCore.Models.Commands
 {
-    public class GetActivationByPkCommand : Command
+    public class GetFetchPendingUpdateCommand : Command
     {
-        public override string Name => "getact";
-        public override string Description => "this is command for geting activation by Product Key.";
+        public override string Name => "getfpu";
+        public override string Description => "this is command for geting updates for exist key by C2V.";
 
         public HttpConnector myHttpConnector = new HttpConnector();
 
@@ -47,13 +47,13 @@ namespace SentinelLdkActivationToolCore.Models.Commands
             int maxFileSize = 8 * 1024 * 100; // 100Kb
 
             string myMessage = "";
-            string pKey = "";
             string savingResult = "";
             string pathForSave = "";
             string fileName = "";
             string fileId = "";
             string fileData = "";
-            string actXml = SentinelSettings.activationXmlString;
+            string targetXml = "";
+            string haspId = "";
 
             var chatId = message.Chat.Id;
             if (Startup.myAppSettings.LogIsEnabled) Log.Write(@"Get Chat Id for response message: " + chatId);
@@ -67,21 +67,7 @@ namespace SentinelLdkActivationToolCore.Models.Commands
 
             if (goNext)
             {
-                if (Startup.myAppSettings.LogIsEnabled) Log.Write(@"Try to get Product Key from message: " + message.Caption);
-                try { pKey = message.Caption.Split(" ")[1]; } catch { goNext = false; }
-                if (Startup.myAppSettings.LogIsEnabled) Log.Write(@"Product Key is: " + pKey);
-
-                if (String.IsNullOrEmpty(pKey) || !SentinelMethods.ProductKeyAndAidValidator(pKey))
-                {
-                    // Return error message if PK is invalid
-                    myMessage = "Product Key is invalid (format)! Please check Product key and try again. ";
-                    goNext = false;
-                }
-            }
-
-            if (goNext) {
-
-                fileName = SentinelMethods.FileNameBuilder(Name, true, pKey);
+                fileName = SentinelMethods.FileNameBuilder(Name, true);
                 pathForSave = SentinelMethods.PathBuilder(fileName, true);
 
                 if (!String.IsNullOrEmpty(pathForSave))
@@ -102,7 +88,7 @@ namespace SentinelLdkActivationToolCore.Models.Commands
                         if (savingResult == "OK")
                         {
                             fileData = await System.IO.File.ReadAllTextAsync(pathForSave);
-                            
+
                             if (Startup.myAppSettings.LogIsEnabled) Log.Write("Incomming file(size: " + fileInfo.FileSize.ToString() + " bits) was saved in dir: " + pathForSave);
                         }
                         else
@@ -125,56 +111,48 @@ namespace SentinelLdkActivationToolCore.Models.Commands
                 }
             }
 
-            if (goNext && savingResult == "OK") { 
-                actXml = actXml.Replace("{PLACEHOLDER}", fileData);
-                myHttpConnector = myHttpConnector.GetRequest("loginpk", HttpMethod.Post, null, new KeyValuePair<string, string>("productKey", pKey)); // TODO login first!
+            if (goNext && savingResult == "OK")
+            {
+                targetXml = fileData;
+                
+                myHttpConnector = myHttpConnector.GetRequest(Name, HttpMethod.Post, null, new KeyValuePair<string, string>("targetXml", targetXml)); // TODO get updates!
                 if (myHttpConnector.httpClientResponseStatus == "OK")
                 {
-                    myHttpConnector = myHttpConnector.GetRequest(Name, HttpMethod.Post, pKey, new KeyValuePair<string, string>("activationXml", actXml), myHttpConnector); // TODO activation!
-                    if (myHttpConnector.httpClientResponseStatus == "OK")
+                    XDocument v2cXml = XDocument.Parse(myHttpConnector.httpClientResponseStr);
+                    haspId = v2cXml.Descendants("hasp").FirstOrDefault().Attributes("id").FirstOrDefault().Value.ToString();
+                    fileName = SentinelMethods.FileNameBuilder(Name, key: haspId);
+                    pathForSave = SentinelMethods.PathBuilder(fileName);
+                    if (!String.IsNullOrEmpty(pathForSave))
                     {
-                        XDocument activationResultXml = XDocument.Parse(myHttpConnector.httpClientResponseStr);
-                        fileName = SentinelMethods.FileNameBuilder(Name);
-                        pathForSave = SentinelMethods.PathBuilder(fileName);
-                        if (!String.IsNullOrEmpty(pathForSave))
+                        savingResult = SentinelMethods.SaveFile(pathForSave, v2cXml.ToString());
+
+                        if (savingResult == "OK")
                         {
-                            XDocument v2cXml = XDocument.Parse(activationResultXml.Descendants("activationString").FirstOrDefault().Value);
-
-                            savingResult = SentinelMethods.SaveFile(pathForSave, v2cXml.ToString());
-
-                            if (savingResult == "OK")
+                            using (var fileStream = new FileStream(pathForSave, FileMode.Open, FileAccess.Read, FileShare.Read))
                             {
-                                using (var fileStream = new FileStream(pathForSave, FileMode.Open, FileAccess.Read, FileShare.Read))
-                                {
-                                    await botClient.SendDocumentAsync(
-                                        chatId: chatId,
-                                        document: new InputOnlineFile(fileStream, fileName),
-                                        caption: "Here is your license by Product Key: " + pKey + "\n" + "AID: " + activationResultXml.Descendants("AID").FirstOrDefault().Value
-                                    );
+                                await botClient.SendDocumentAsync(
+                                    chatId: chatId,
+                                    document: new InputOnlineFile(fileStream, fileName),
+                                    caption: "Here is your updates for Protection Key ID: " + v2cXml.Descendants("hasp").FirstOrDefault().Attributes("id").FirstOrDefault().Value.ToString()
+                                );
 
-                                    myMessage = "";
-                                    if (Startup.myAppSettings.LogIsEnabled) Log.Write("License by Product Key: " + pKey + " | AID: " + activationResultXml.Descendants("AID").FirstOrDefault().Value);
-                                }
-                            }
-                            else
-                            {
-                                myMessage = "Problem with saving file on server. Saving result: " + savingResult + "\n\n";
-                                if (Startup.myAppSettings.LogIsEnabled) Log.Write("Problem with saving file on server. Saving result: " + savingResult);
+                                myMessage = "";
+                                if (Startup.myAppSettings.LogIsEnabled) Log.Write("Updates for Protection Key ID: " + v2cXml.Descendants("hasp").FirstOrDefault().Attributes("id").FirstOrDefault().Value.ToString());
                             }
                         }
-                    }
-                    else
-                    {
-                        myMessage = "Activation error: " + myHttpConnector.httpClientResponseStatus;
-                        if (Startup.myAppSettings.LogIsEnabled) Log.Write("Activation error: " + myHttpConnector.httpClientResponseStatus);
+                        else
+                        {
+                            myMessage = "Problem with saving file on server. Saving result: " + savingResult + "\n\n";
+                            if (Startup.myAppSettings.LogIsEnabled) Log.Write("Problem with saving file on server. Saving result: " + savingResult);
+                        }
                     }
                 }
                 else
                 {
-                    myMessage = "Login error: " + myHttpConnector.httpClientResponseStatus;
-                    if (Startup.myAppSettings.LogIsEnabled) Log.Write("Login error: " + myHttpConnector.httpClientResponseStatus);
+                    myMessage = "Get Fetch Pending Updates error: " + myHttpConnector.httpClientResponseStatus;
+                    if (Startup.myAppSettings.LogIsEnabled) Log.Write("Get Fetch Pending Updates error: " + myHttpConnector.httpClientResponseStatus);
                 }
-
+                
                 if (!String.IsNullOrEmpty(myMessage))
                 {
                     if (Startup.myAppSettings.LogIsEnabled) Log.Write(@"Try to send response message - " + myMessage);

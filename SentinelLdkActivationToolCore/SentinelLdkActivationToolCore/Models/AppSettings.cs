@@ -7,13 +7,9 @@ namespace SentinelLdkActivationToolCore.Models
 {
     public class AppSettings
     {
-        /*public const string Url = "https://rsk-inc.ru:88/{0}";
-          
-        public const string HookPart = "api/message/update";
+        public static string MasterPassword = ConfigurationManager.AppSetting["Access:MasterPassword"];
 
-        public const string Name = "SentinelLdkSuperBot";
-
-        public const string Key = "1502781432:AAGddoTRkW8gOTcmZj3zE00gvKgMv65xwYA";*/
+        public static string AdminPassword = ConfigurationManager.AppSetting["Access:AdminPassword"];
 
         public static string Url = ConfigurationManager.AppSetting["BotNetSettings:BotProtocol"] + "://" +
             ConfigurationManager.AppSetting["BotNetSettings:BotAddress"] + ":" +
@@ -33,8 +29,6 @@ namespace SentinelLdkActivationToolCore.Models
 
         private string PathForLog { get; set; } = "";
 
-        //private bool LogsShouldBeEnabled { get; set; } = true;
-
         private bool LogsShouldBeEnabled { get; set; } = ConfigurationManager.AppSetting["CustomLogging:Enable"] == "true" ||
                                                             ConfigurationManager.AppSetting["CustomLogging:Enable"] == "True" ||
                                                             ConfigurationManager.AppSetting["CustomLogging:Enable"] == "1" ? true : false ;
@@ -47,6 +41,12 @@ namespace SentinelLdkActivationToolCore.Models
                                                             ConfigurationManager.AppSetting["CustomLogging:AutoClear:Enable"] == "1" ? true : false;
 
         public int LogsAutoClearDaysBeforeDelete { get; set; } = Convert.ToInt32(ConfigurationManager.AppSetting["CustomLogging:AutoClear:DaysBeforeDelete"]);
+
+        public bool StorageAutoClearIsEnabled { get; set; } = ConfigurationManager.AppSetting["StorageSettings:AutoClear:Enable"] == "true" ||
+                                                            ConfigurationManager.AppSetting["StorageSettings:AutoClear:Enable"] == "True" ||
+                                                            ConfigurationManager.AppSetting["StorageSettings:AutoClear:Enable"] == "1" ? true : false;
+
+        public int StorageAutoClearDaysBeforeDelete { get; set; } = Convert.ToInt32(ConfigurationManager.AppSetting["StorageSettings:AutoClear:DaysBeforeDelete"]);
 
         public AppSettings(string fileName) {
             if (LogsShouldBeEnabled) {
